@@ -399,12 +399,39 @@ pub mod my_service_grpc {
 }
 ```
 
+## Server Functions — Use `#[get]` / `#[post]`, NOT `#[server]`
+
+Always use explicit HTTP method attributes with a clear path. Convention: `/api/{domain}/{action}`.
+
+```rust
+// ✅ CORRECT — explicit method + path
+#[get("/api/swap-profiles/get")]
+pub async fn get_swap_profiles() -> Result<Vec<SwapProfileModel>, ServerFnError> { ... }
+
+#[post("/api/swap-profiles/save")]
+pub async fn save_swap_profile(profile: SwapProfileModel) -> Result<(), ServerFnError> { ... }
+
+// ❌ WRONG — random generated path, unclear method
+#[server]
+pub async fn get_swap_profiles() -> Result<Vec<SwapProfileModel>, ServerFnError> { ... }
+```
+
+**Why:** `#[server]` generates a random internal path which makes debugging and network inspection hard. `#[get]`/`#[post]` give predictable, readable URLs.
+
+Organize API files by domain in `src/api/`:
+```
+src/api/
+├── mod.rs             — pub mod for each domain file
+├── swap_profiles.rs   — #[get] + #[post] for swap profiles
+└── instruments.rs     — #[get] for instruments
+```
+
 ## gRPC Client in Server Functions
 
 When `service-sdk` is used with `grpc` feature, it forces `with-telemetry` in `my-grpc-extensions`. All generated client methods require a telemetry context as second argument:
 
 ```rust
-#[server]
+#[get("/api/items/get")]
 pub async fn get_items() -> Result<Vec<ItemModel>, ServerFnError> {
     use crate::server::APP_CTX;
 
