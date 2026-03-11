@@ -384,6 +384,12 @@ tonic = { version = "*", optional = true }
 tonic-prost = { version = "*", optional = true }
 prost = { version = "*", optional = true }
 service-sdk = { tag = "...", git = "...", features = ["grpc", "macros"], optional = true }
+
+# ⚠️ IMPORTANT: rust-extensions must be a DIRECT (non-optional) dependency
+# service-sdk re-exports rust-extensions on server side, but service-sdk is optional.
+# Shared models (enums with AsStr/EnumIterator) compile on BOTH web and server targets,
+# so rust-extensions must be always available.
+rust-extensions = { tag = "0.1.5", git = "https://github.com/MyJetTools/rust-extensions.git" }
 ```
 
 ### main.rs — proto module (server only)
